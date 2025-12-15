@@ -53,43 +53,75 @@ with st.container():
         # Required inputs
         key_word = st.text_input('나를 한 단어로 표현한다면?', placeholder='예: 감성, 에너지, 차분함')
 
-        likes_input = st.text_input('내가 좋아하는 것 3가지 (콤마로 구분)', placeholder='예: 초코, 고양이, 꽃')
-
-        mood = st.selectbox('내가 원하는 감성', options=['유쾌한', '감성적인', '힙한', '귀여운', '쿨한'])
+        likes_input = st.text_input('내가 좋아하는 것 2가지 (콤마로 구분)', placeholder='예: 초코, 고양이')
 
         submit = st.form_submit_button('별명 만들기')
         st.markdown("""</div>""", unsafe_allow_html=True)
 
-    # 저장된 변수 이름은 요청대로 `key_word`, `likes`, `mood`
+    # 저장된 변수 이름은 요청대로 `key_word`, `likes`
     # Parse likes into list
     likes = [s.strip() for s in likes_input.split(',') if s.strip()] if likes_input else []
 
     # Generation logic
-    def make_nickname(mood, likes, key_word):
-      # 다양한 별명 패턴을 랜덤으로 선택하여 좀 더 창의적인 별명 생성
-      first_like = likes[0] if len(likes) > 0 else None
+    def make_nickname(likes, key_word):
+      # key_word 와 좋아하는 것 두 개를 조합해 다양한 유머러스한 별명 생성
+      like1 = likes[0] if len(likes) > 0 else None
+      like2 = likes[1] if len(likes) > 1 else None
+
+      prefixes = ['달콤한', '은은한', '전설의', '찐', '쫀득한', '감성 충만한', '스웩 넘치는', '핫한', '초월적', '귀염뽀짝한', '시크한', '소울풀한']
+      suffixes = ['전설', '요정', '마스터', '왕', '요정님', '러버', '소년', '소녀', '스파크', '천사']
+
       patterns = []
-      if first_like:
+
+      # 조합 패턴: 키워드 + 좋아하는 것
+      if key_word and like1:
         patterns.extend([
-          f"{mood} {first_like}",
-          f"{first_like}의 {mood}",
-          f"{mood}한 {first_like}",
-          f"{first_like} 요정 ({mood})",
-          f"{mood} {first_like}★",
-        ])
-      if key_word:
-        patterns.extend([
-          f"{mood} {key_word}",
-          f"{key_word} 같은 {mood}",
-          f"{key_word}의 {mood} 스타일",
+          f"{key_word} {like1}",
+          f"{like1} 같은 {key_word}",
+          f"{key_word}의 {like1}",
+          f"{random.choice(prefixes)} {key_word} {like1}",
+          f"{key_word} {like1} {random.choice(suffixes)}",
         ])
 
-      # 기본 패턴
+      # 좋아하는 것 두 가지 결합
+      if like1 and like2:
+        patterns.extend([
+          f"{like1}×{like2} 혼종",
+          f"{like1}의 {like2} 믹스",
+          f"{random.choice(prefixes)} {like1}{like2}",
+          f"{like1}♡{like2} 매니아",
+          f"{like1} & {like2} 스페셜",
+          f"{like1}요정 {like2}왕",
+        ])
+
+      # 키워드만 있을 때
+      if key_word and not like1:
+        patterns.extend([
+          f"{key_word} 전설",
+          f"{random.choice(prefixes)} {key_word}",
+          f"{key_word}의 하루",
+        ])
+
+      # 기발한 혼성 패턴
+      if key_word and like1 and like2:
+        patterns.extend([
+          f"{key_word}의 {like1}·{like2}",
+          f"{like1}{like2}를 닮은 {key_word}",
+          f"{random.choice(prefixes)} {like1}의 {key_word}",
+        ])
+
+      # 안전한 기본 패턴
       patterns.extend([
-        f"{mood} 스타",
-        f"{mood} 전설",
-        f"{mood} 빛나는 존재",
+        f"{key_word} 스타" if key_word else None,
+        f"{random.choice(prefixes)} {like1}" if like1 else None,
+        f"{random.choice(prefixes)} {like2}" if like2 else None,
       ])
+
+      # 필터: None 제거
+      patterns = [p for p in patterns if p]
+
+      if not patterns:
+        return '센스쟁이'
 
       nick = random.choice(patterns)
       return nick
@@ -97,17 +129,18 @@ with st.container():
     def make_fortune(nick):
       templates = [
         f"너에게 딱 맞는 별명은 {nick}. 이미 전설의 시작이야 ✨",
-        f"별명 '{nick}'으로 시작하는 순간, 너의 감성이 모두를 사로잡는다 🌟",
-        f"'{nick}'으로 불리는 날부터, 주변에 웃음이 번지기 시작한다 😎",
-        f"오늘부터 넌 '{nick}'. 작은 행동이 큰 센스를 만든다 🎉",
-        f"별명 '{nick}'은 네가 가진 매력을 잘 설명해준다. 굿 초이스! 🌈",
-        f"'{nick}'으로 불릴 때마다, 너의 하루가 반짝인다 ✨",
+        f"별명 '{nick}'으로 시작하는 순간, 너의 매력이 파도처럼 밀려온다 🌊",
+        f"'{nick}'으로 불릴 때마다, 주변이 웃음으로 가득 찬다 😎",
+        f"오늘부터 넌 '{nick}'. 모두가 너의 센스를 리트윗할 거야 🎉",
+        f"별명 '{nick}'은 네 장점을 한 문장으로 요약한 표현이야. 굿 초이스! 🌈",
+        f"'{nick}'으로 불리면, 소소한 순간도 멋진 에피소드로 변한다 ✨",
+        f"그 별명, 이미 예약완료야 — '{nick}'의 하루가 기대돼 🎈",
       ]
       return random.choice(templates)
 
     # 결과 출력
     if submit:
-        nickname = make_nickname(mood, likes, key_word)
+      nickname = make_nickname(likes, key_word)
         fortune = make_fortune(nickname)
 
         st.markdown(
@@ -118,7 +151,7 @@ with st.container():
               <div style='height:8px'></div>
               <div class='fortune'>🌟 {fortune}</div>
               <div style='height:12px'></div>
-              <div class='small-muted'>Tip: 더 다양한 조합을 원하면 좋아하는 것이나 감성을 바꿔보세요.</div>
+              <div class='small-muted'>Tip: 더 다양한 조합을 원하면 좋아하는 것을 바꿔보세요.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -129,7 +162,7 @@ with st.container():
             """
             <div class='app-card'>
               <div style='font-weight:700; color:#3b3b3b'>시작해볼까요? ✨</div>
-              <div class='small-muted' style='margin-top:8px'>위 입력란에 간단히 입력한 뒤 '별명 만들기'를 눌러보세요. 예시: 좋아하는 것 → 초코, 고양이, 꽃</div>
+              <div class='small-muted' style='margin-top:8px'>위 입력란에 간단히 입력한 뒤 '별명 만들기'를 눌러보세요. 예시: 좋아하는 것 → 초코, 고양이</div>
             </div>
             """,
             unsafe_allow_html=True,
